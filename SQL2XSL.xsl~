@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+	<!-- here is the template that does the replacement -->
+	<xsl:template name="replaceCharsInString">
+		<xsl:param name="stringIn"/>
+		<xsl:param name="charsIn"/>
+		<xsl:param name="charsOut"/>
+		<xsl:choose>
+			<xsl:when test="contains($stringIn,$charsIn)">
+				<xsl:value-of select="concat(substring-before($stringIn,$charsIn),$charsOut)"/>
+				<xsl:call-template name="replaceCharsInString">
+					<xsl:with-param name="stringIn" select="substring-after($stringIn,$charsIn)"/>
+					<xsl:with-param name="charsIn" select="$charsIn"/>
+					<xsl:with-param name="charsOut" select="$charsOut"/>
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="$stringIn"/>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+
+	<xsl:template match='Record'>
+		<xsl:variable name="Pkey" select='Pk_clau'/>
+		&lt;linea&gt;
+			<!-- Seccion que escribe el atributo, asignandole el nro de Clausula -->
+	  		<xsl:attribute name="Pkey">
+	    			<xsl:value-of select='string($Pkey)' />
+			</xsl:attribute>
+			<!-- Seccion que escribe el atributo, asignandole el nro de Clausula -->
+			<!-- Luego se escribe el titulo de la clausula -->
+			<xsl:value-of select='Detclau'/>
+			<!-- Fin titulo de la clausula -->
+		&lt;/linea&gt;
+		&lt;linea&gt;
+			<!-- Seccion que escribe el atributo, asignandole el nro de Clausula -->
+	  		<xsl:attribute name="Pkey">
+	    			<xsl:value-of select='string($Pkey)' />
+			</xsl:attribute>
+			<!-- Fin seccion que escribe el atributo, asignandole el nro de Clausula -->
+			<xsl:for-each select='Detalle'>
+				<!-- Llamado a funcion para reemplazar string -->
+				<xsl:variable name="myString" select='.'/>
+				<xsl:variable name="myNewString">
+					<xsl:call-template name="replaceCharsInString">
+						<xsl:with-param name="stringIn" select="string($myString)"/>
+						<xsl:with-param name="charsIn" select="'.&#xa;'"/>
+						<xsl:with-param name="charsOut" select="concat('.&lt;/linea&gt;&#xa;&lt;linea Pkey=&#x22;',string($Pkey),'&#x22; /&gt;')"/>
+					</xsl:call-template>
+				</xsl:variable>
+				<xsl:variable name="myNewRealString" select="string($myNewString)"/>
+				<xsl:value-of select="string($myNewRealString)" />
+				<!-- Fin funcion para reemplazar string -->
+			</xsl:for-each>
+		&lt;/linea&gt;
+	</xsl:template>
+</xsl:stylesheet>

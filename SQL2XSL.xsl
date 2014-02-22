@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
-	<!-- here is the template that does the replacement -->
+	<!-- Template de funcion que hace el reemplazo de strings -->
 	<xsl:template name="replaceCharsInString">
 		<xsl:param name="stringIn"/>
 		<xsl:param name="charsIn"/>
@@ -22,37 +22,39 @@
 	</xsl:template>
 
 	<xsl:template match='Record'>
-		<xsl:variable name="Pkey" select='Pk_clau'/>
-		<linea>
-			<!-- Seccion que escribe el atributo, asignandole el nro de Clausula -->
-	  		<xsl:attribute name="Pkey">
-	    			<xsl:value-of select='string($Pkey)' />
-			</xsl:attribute>
-			<!-- Seccion que escribe el atributo, asignandole el nro de Clausula -->
-			<!-- Luego se escribe el titulo de la clausula -->
-			<xsl:value-of select='Detclau'/>
-			<!-- Fin titulo de la clausula -->
-		</linea>
-		<linea>
-			<!-- Seccion que escribe el atributo, asignandole el nro de Clausula -->
-	  		<xsl:attribute name="Pkey">
-	    			<xsl:value-of select='string($Pkey)' />
-			</xsl:attribute>
-			<!-- Fin seccion que escribe el atributo, asignandole el nro de Clausula -->
+		<!-- Inicializacion de variables  -->
+			<!-- 1) Lectura ID clausula  -->
+			<xsl:variable name="Pkey" select='Pk_clau'/>
+			<!-- 2) Concatenacion de string de inicio: <claus:linea Pkey="#" > -->
+			<xsl:variable name="Inicio" select="concat('&lt;claus:linea Pkey=&#x22;',string($Pkey),'&#x22; &gt;')"/>
+			<!-- 3) Concatenacion de string de cierre: </claus:linea> -->
+			<xsl:variable name="Fin" select="'&lt;/claus:linea&gt;&#xa;'"/>
+		<!-- Fin inicializacion  -->
+		<!-- Mostramos la primer linea que es el titulo leido de detclau con su correspondiente pk -->
+		<xsl:value-of select='string($Inicio)' />
+		<xsl:value-of select='Detclau'/>
+		<xsl:value-of select='string($Fin)' />
+		<!-- Fin primer linea -->
+		<!-- Luego mostramos lo correspondiente al campo detalle-->
+		<xsl:value-of select='string($Inicio)' />
+			<!-- Luego del titulo, recorremos en forma de bucle, aunque por ahora es un solo campo -->
 			<xsl:for-each select='Detalle'>
-				<!-- Llamado a funcion para reemplazar string -->
+				<!-- Llamado a funcion para reemplazar string, . = contenido actual de Detalle -->
 				<xsl:variable name="myString" select='.'/>
 				<xsl:variable name="myNewString">
 					<xsl:call-template name="replaceCharsInString">
+						<!-- Primer parametro, string leido a modificar -->
 						<xsl:with-param name="stringIn" select="string($myString)"/>
+						<!-- Segundo parametro, string a buscar: . + &#xa=LF -->
 						<xsl:with-param name="charsIn" select="'.&#xa;'"/>
-						<xsl:with-param name="charsOut" select="concat('.&lt;/linea&gt;&#xa;&lt;linea Pkey=&#x22;',string($Pkey),'&#x22; /&gt;')"/>
+						<!-- Tercer parametro, concatenacion de string: .</linea>\n<linea Pkey="#" />  -->
+						<xsl:with-param name="charsOut" select="concat(string($Fin),string($Inicio))"/>
 					</xsl:call-template>
 				</xsl:variable>
 				<xsl:variable name="myNewRealString" select="string($myNewString)"/>
 				<xsl:value-of select="string($myNewRealString)" />
 				<!-- Fin funcion para reemplazar string -->
 			</xsl:for-each>
-		</linea>
+		<xsl:value-of select='string($Fin)' />
 	</xsl:template>
 </xsl:stylesheet>

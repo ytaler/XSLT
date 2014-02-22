@@ -39,19 +39,42 @@
 		<xsl:value-of select='string($Inicio)' />
 			<!-- Luego del titulo, recorremos en forma de bucle, aunque por ahora es un solo campo -->
 			<xsl:for-each select='Detalle'>
-				<!-- Llamado a funcion para reemplazar string, . = contenido actual de Detalle -->
+				<!-- Llamado a funcion para reemplazar string, . = contenido actual de Detalle. primero 0D0A x 0D -->
 				<xsl:variable name="myString" select='.'/>
 				<xsl:variable name="myNewString">
 					<xsl:call-template name="replaceCharsInString">
 						<!-- Primer parametro, string leido a modificar -->
 						<xsl:with-param name="stringIn" select="string($myString)"/>
-						<!-- Segundo parametro, string a buscar: . + &#xa=LF -->
-						<xsl:with-param name="charsIn" select="'.&#xa;'"/>
+						<!-- Segundo parametro, string a buscar: &#xd; = CR + &#xa; = LF -->
+						<xsl:with-param name="charsIn" select="'&#xd;&#xa;'"/>
+						<!-- Tercer parametro, concatenacion de string: &#xd; = CR -->
+						<xsl:with-param name="charsOut" select="'&#xd;'"/>
+					</xsl:call-template>
+				</xsl:variable>
+				<!-- Llamado a funcion para reemplazar string, . = contenido actual de Detalle. Luego 0A x 0D -->
+				<xsl:variable name="myNewString1">
+					<xsl:call-template name="replaceCharsInString">
+						<!-- Primer parametro, string leido a modificar -->
+						<xsl:with-param name="stringIn" select="string($myNewString)"/>
+						<!-- Segundo parametro, string a buscar: . + &#xa; = LF -->
+						<xsl:with-param name="charsIn" select="'&#xa;'"/>
+						<!-- Tercer parametro, concatenacion de string: &#xd; = CR-->
+						<xsl:with-param name="charsOut" select="'&#xd;'"/>
+					</xsl:call-template>
+				</xsl:variable>
+				<!-- Por ultimo, como quedo todo en &#xd; = CR, reemplazamos por el tag -->	
+				<xsl:variable name="myNewString2">
+					<xsl:call-template name="replaceCharsInString">
+						<!-- Primer parametro, string leido a modificar -->
+						<xsl:with-param name="stringIn" select="string($myNewString1)"/>
+						<!-- Segundo parametro, string a buscar: . + &#xd; = CR -->
+						<xsl:with-param name="charsIn" select="'&#xd;'"/>
 						<!-- Tercer parametro, concatenacion de string: .</linea>\n<linea Pkey="#" />  -->
 						<xsl:with-param name="charsOut" select="concat(string($Fin),string($Inicio))"/>
 					</xsl:call-template>
 				</xsl:variable>
-				<xsl:variable name="myNewRealString" select="string($myNewString)"/>
+				<xsl:variable name="myNewRealString" select="string($myNewString2)"/>
+				<!-- Ahora escribimos el resultado-->
 				<xsl:value-of select="string($myNewRealString)" />
 				<!-- Fin funcion para reemplazar string -->
 			</xsl:for-each>
